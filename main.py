@@ -16,9 +16,9 @@ def imgPipeline(image, thresh):
     height = image.shape[0]  # 1080
     width = image.shape[1]  # 1920
 
-    minx0 = round(width * 0.4)
+    minx0 = round(width * 0.35)
     miny0 = round(height * 0.3)
-    maxx0 = round(width * 0.6)
+    maxx0 = round(width * 0.65)
     maxy0 = round(height * 0.7)
 
     region_of_interest_vertices = [
@@ -30,7 +30,7 @@ def imgPipeline(image, thresh):
 
     gray_image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
     blur = cv2.GaussianBlur(gray_image, (3, 3), 0)
-    cannyed_image = cv2.Canny(blur, threshold1=thresh, threshold2=thresh * 2, apertureSize=3)
+    cannyed_image = cv2.Canny(blur, threshold1=thresh, threshold2=thresh * 0.55, apertureSize=3)
 
     cropped_image = region_of_interest(
         cannyed_image,
@@ -51,20 +51,23 @@ def imgPipeline(image, thresh):
     if len(new) > 1:
         c1 = new[-1]
         c2 = new[-2]
-        cv2.drawContours(image, contours, -1, (0, 0, 0), 10)
+
+        cv2.drawContours(image, contours, -1, (0, 0, 0), 1)
 
         outline1 = cv2.approxPolyDP(c1, 4, False)
-        cv2.drawContours(image, [outline1], -1, (0, 0, 0), 6)
+        cv2.drawContours(image, [outline1], -1, (0, 0, 0), 1)
 
         outline2 = cv2.approxPolyDP(c2, 4, False)
-        cv2.drawContours(image, [outline2], -1, (0, 0, 0), 6)
+        cv2.drawContours(image, [outline2], -1, (0, 0, 0), 1)
+
 
         midline = []
 
-        for pt1, pt2 in zip(outline1, outline2):
+        for pt1, pt2 in zip(outline1[:len(outline1)//2], outline2):
             mid_x = int((pt1[0][0] + pt2[0][0])/2)
             mid_y = int((pt1[0][1] + pt2[0][1])/2)
             midline.append([[mid_x, mid_y]])
+
 
         midline = np.array(midline, dtype=np.int32)
 
@@ -75,16 +78,11 @@ def imgPipeline(image, thresh):
     return image
 
 
-# img = cv2.imread("curved.png")
-# cv2.imshow("source", imgPipeline(img, 100))
-# cv2.waitKey(0)
-# cv2.destroyAllWindows()
-
 
 # Open the camera stream for processinq
 camera = cv2.VideoCapture(0)  # 0 for built-in or default camera and 1 for second camera
 if not camera.isOpened():
-    print("Camera Not Accessible, Try Agan")
+    print("Camera Not Accessible, Try Again")
     exit()
 
 while True:
@@ -94,4 +92,4 @@ while True:
         break
     cv2.imshow('Source View', imgPipeline(frame, 150))
     if cv2.waitKey(1) == ord('q'):
-        break77
+        break
